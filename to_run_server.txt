@@ -1,0 +1,7 @@
+cd Backend
+
+python -m uvicorn main:app --reload --port 8000
+
+venv\Scripts\activate
+
+uvicorn app.main:app --reload

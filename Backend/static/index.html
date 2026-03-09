@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Startup Idea Validator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            background: linear-gradient(135deg, #0f0f1a, #1a1a2e, #0f172a);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .title-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .glass {
+            background: rgba(30, 35, 55, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .input-focus {
+            transition: all 0.3s ease;
+        }
+        
+        .input-focus:focus {
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25);
+            border-color: #3b82f6;
+            transform: translateY(-1px);
+        }
+
+        .neon-button {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .neon-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+        }
+        
+        .result-card, .score-card {
+            animation: fadeInUp 0.6s ease-out backwards;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .score-badge {
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Privacy Banner -->
+    <div class="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-900/30 to-indigo-900/30 border-b border-white/10 py-3 text-center text-sm font-medium backdrop-blur-md">
+        <i class="fa-solid fa-shield-halved text-blue-400 mr-2"></i>
+        <strong>Your ideas are not saved.</strong> Everything disappears when you close or refresh the page.
+    </div>
+
+    <div class="max-w-5xl mx-auto pt-28 pb-20 px-5 sm:px-6 lg:px-8">
+        <!-- Hero -->
+        <div class="text-center mb-16">
+            <h1 class="title-font text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-r from-white via-blue-200 to-indigo-200 bg-clip-text text-transparent">
+                Validate Your<br>Startup Idea
+            </h1>
+            <p class="text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto">
+                Get instant AI-powered feedback on viability, market fit, competition and next steps.
+            </p>
+        </div>
+
+        <!-- Main Form Card -->
+        <div class="glass rounded-3xl p-8 sm:p-10 lg:p-12 shadow-2xl shadow-black/50 border border-white/5">
+            <div class="flex items-center gap-4 mb-10">
+                <div class="text-6xl">💡</div>
+                <div>
+                    <h2 class="title-font text-4xl font-bold">Idea Validator</h2>
+                    <p class="text-gray-400 mt-1">AI-powered startup analysis</p>
+                </div>
+            </div>
+
+            <form id="ideaForm" onsubmit="validateIdea(event)" class="space-y-8">
+                <div>
+                    <label class="block text-lg font-medium text-gray-200 mb-3">
+                        Startup Title <span class="text-red-400">*</span>
+                    </label>
+                    <input type="text" id="title" required
+                           class="input-focus w-full bg-white/5 border border-gray-600 rounded-2xl px-6 py-5 text-lg placeholder-gray-500 focus:outline-none"
+                           placeholder="e.g. Smart Task Manager for Students">
+                </div>
+
+                <div>
+                    <label class="block text-lg font-medium text-gray-200 mb-3">
+                        Description <span class="text-red-400">*</span>
+                    </label>
+                    <textarea id="description" rows="6" required
+                              class="input-focus w-full bg-white/5 border border-gray-600 rounded-3xl px-6 py-5 text-lg placeholder-gray-500 focus:outline-none resize-none"
+                              placeholder="What problem does it solve? Who is it for? What makes it different?"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-7">
+                    <div>
+                        <label class="block text-lg font-medium text-gray-200 mb-3">
+                            Industry / Category
+                        </label>
+                        <input type="text" id="industry"
+                               class="input-focus w-full bg-white/5 border border-gray-600 rounded-2xl px-6 py-5 placeholder-gray-500 focus:outline-none"
+                               placeholder="EdTech, Health, Fintech, Sustainability...">
+                    </div>
+
+                    <div>
+                        <label class="block text-lg font-medium text-gray-200 mb-3">
+                            Target Users
+                        </label>
+                        <input type="text" id="target"
+                               class="input-focus w-full bg-white/5 border border-gray-600 rounded-2xl px-6 py-5 placeholder-gray-500 focus:outline-none"
+                               placeholder="College students, freelancers, small businesses...">
+                    </div>
+                </div>
+
+                <button type="submit" id="validateBtn"
+                        class="neon-button w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xl py-6 rounded-3xl flex items-center justify-center gap-3 shadow-xl shadow-blue-900/40 transition-all active:scale-98">
+                    <i class="fa-solid fa-rocket-launch"></i>
+                    ANALYZE IDEA
+                </button>
+            </form>
+
+            <!-- Result Area -->
+            <div id="result" class="mt-12 hidden"></div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-16 text-center text-sm text-gray-500">
+            College Project • All processing happens locally • No data stored
+        </div>
+    </div>
+
+    <script>
+        // ─── Sample ideas (optional fill) ───
+        const samples = [
+            { title: "StudyBuddy AI", description: "Personalized study plans and explanations for college subjects using artificial intelligence.", industry: "EdTech", target: "University students" },
+            { title: "EcoTrack Daily", description: "Mobile app that tracks personal carbon footprint and gives simple daily reduction suggestions.", industry: "Sustainability", target: "Environmentally conscious young adults" },
+            { title: "QuickFit Workouts", description: "Generates 10-minute home workouts based on available time and equipment.", industry: "Health & Fitness", target: "Busy students and professionals" }
+        ];
+
+        function fillSample(n) {
+            document.getElementById('title').value = samples[n].title;
+            document.getElementById('description').value = samples[n].description;
+            document.getElementById('industry').value = samples[n].industry;
+            document.getElementById('target').value = samples[n].target;
+        }
+
+        function clearForm() {
+            document.getElementById('ideaForm').reset();
+            document.getElementById('result').classList.add('hidden');
+        }
+
+        async function validateIdea(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('validateBtn');
+            btn.disabled = true;
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-spinner-third animate-spin mr-3"></i> ANALYZING...`;
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = `
+                <div class="text-center py-20">
+                    <div class="w-20 h-20 mx-auto border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-6"></div>
+                    <p class="text-xl text-blue-300">Analyzing your startup idea...</p>
+                    <p class="text-sm text-gray-500 mt-3">This usually takes 4–10 seconds</p>
+                </div>
+            `;
+
+            const data = {
+                title: document.getElementById("title").value.trim(),
+                description: document.getElementById("description").value.trim(),
+                industry: document.getElementById("industry").value.trim(),
+                target_audience: document.getElementById("target").value.trim()
+            };
+
+            // Basic client-side validation
+            if (!data.title.trim()) {
+                showError("Please enter a startup title");
+                return resetButton();
+            }
+            if (!data.description.trim() || data.description.length < 20) {
+                showError("Description should be at least 20 characters long");
+                return resetButton();
+            }
+
+            function showError(msg) {
+                resultDiv.innerHTML = `
+                    <div class="bg-red-900/30 border border-red-700 p-8 rounded-3xl text-red-200 text-center">
+                        <i class="fa-solid fa-circle-exclamation text-4xl mb-4 block"></i>
+                        <h4 class="text-xl font-semibold mb-2">Input Error</h4>
+                        <p>${msg}</p>
+                    </div>
+                `;
+                resetButton();
+            }
+
+            function resetButton() {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/v1/validate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                // ─── Beautiful HTML rendering instead of raw JSON ───
+                let html = `
+                    <div class="space-y-8">
+                        <!-- Score Card -->
+                        <div class="score-card glass rounded-3xl p-8 text-center">
+                            <h3 class="text-2xl font-semibold mb-4">Viability Score</h3>
+                            <div class="text-7xl font-bold score-badge inline-block px-10 py-6 rounded-3xl shadow-2xl">
+                                ${Math.round(result.overall_score * 10) / 10}
+                                <span class="text-3xl font-normal opacity-80">/ 10</span>
+                            </div>
+                        </div>
+
+                        <!-- Executive Summary -->
+                        <div class="glass rounded-3xl p-8">
+                            <h3 class="text-2xl font-semibold mb-4 flex items-center gap-3">
+                                <i class="fa-solid fa-chart-line text-blue-400"></i>
+                                Executive Summary
+                            </h3>
+                            <p class="text-gray-200 leading-relaxed whitespace-pre-wrap">
+                                ${result.executive_summary || "No summary available."}
+                            </p>
+                        </div>
+
+                        <!-- Recommended Next Steps -->
+                        <div class="glass rounded-3xl p-8">
+                            <h3 class="text-2xl font-semibold mb-6 flex items-center gap-3">
+                                <i class="fa-solid fa-list-check text-green-400"></i>
+                                Recommended Next Steps
+                            </h3>
+                            <ol class="space-y-4 text-gray-200 list-decimal pl-6">
+                                ${result.recommended_next_steps?.map(step => `<li>${step}</li>`).join('') || "<li>No steps generated.</li>"}
+                            </ol>
+                        </div>
+
+                        <!-- SWOT (collapsible) -->
+                        <details class="glass rounded-3xl p-6">
+                            <summary class="text-xl font-semibold cursor-pointer flex items-center gap-3">
+                                <i class="fa-solid fa-chart-pie text-yellow-400"></i>
+                                SWOT Analysis
+                            </summary>
+                            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <h4 class="font-semibold text-green-400 mb-2">Strengths</h4>
+                                    <ul class="list-disc pl-5 space-y-1">
+                                        ${result.swot_analysis?.strengths?.map(s => `<li>${s}</li>`).join('') || "<li>No data</li>"}
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-red-400 mb-2">Weaknesses</h4>
+                                    <ul class="list-disc pl-5 space-y-1">
+                                        ${result.swot_analysis?.weaknesses?.map(w => `<li>${w}</li>`).join('') || "<li>No data</li>"}
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-blue-400 mb-2">Opportunities</h4>
+                                    <ul class="list-disc pl-5 space-y-1">
+                                        ${result.swot_analysis?.opportunities?.map(o => `<li>${o}</li>`).join('') || "<li>No data</li>"}
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-orange-400 mb-2">Threats</h4>
+                                    <ul class="list-disc pl-5 space-y-1">
+                                        ${result.swot_analysis?.threats?.map(t => `<li>${t}</li>`).join('') || "<li>No data</li>"}
+                                    </ul>
+                                </div>
+                            </div>
+                        </details>
+
+                        <p class="text-xs text-gray-500 text-center mt-10">
+                            This is an AI-generated evaluation for educational purposes only.
+                        </p>
+                    </div>
+                `;
+
+                resultDiv.innerHTML = html;
+
+            } catch (err) {
+                resultDiv.innerHTML = `
+                    <div class="bg-amber-900/30 border border-amber-700 p-10 rounded-3xl text-center">
+                        <i class="fa-solid fa-server text-5xl text-amber-400 mb-6 block"></i>
+                        <h4 class="text-2xl font-semibold mb-4 text-amber-300">Connection Problem</h4>
+                        <p class="text-amber-200">Make sure the backend is running at <code>http://127.0.0.1:8000</code></p>
+                        <p class="text-sm text-amber-300/80 mt-4">${err.message}</p>
+                    </div>
+                `;
+            } finally {
+                resetButton();
+            }
+
+            function resetButton() {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            document.getElementById('title')?.focus();
+        });
+    </script>
+</body>
+</html>
