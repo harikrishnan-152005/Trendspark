@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useContext } from "react";
 import { ThemeContext } from "../context/ThemeContext";
+import { clearSession } from "../services/api";
 
 export default function SidebarLayout({ children }) {
   const location = useLocation();
@@ -42,18 +43,10 @@ export default function SidebarLayout({ children }) {
         {/* BOTTOM SECTION */}
         <div className="space-y-4">
 
-          {/* THEME TOGGLE */}
-          <button
-            onClick={() => setDark(!dark)}
-            className="w-full bg-slate-800 px-4 py-2 rounded-lg hover:bg-slate-700 transition"
-          >
-            {dark ? "Light Mode ☀️" : "Dark Mode 🌙"}
-          </button>
-
           {/* LOGOUT */}
           <button
             onClick={() => {
-              localStorage.removeItem("token");
+              clearSession();
               window.location.reload();
             }}
             className="w-full bg-red-600 px-4 py-2 rounded-lg hover:bg-red-500 transition"

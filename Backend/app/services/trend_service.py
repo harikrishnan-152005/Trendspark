@@ -1,46 +1,69 @@
-from pytrends.request import TrendReq
-from app.core.cache import generate_cache_key, get_cache, set_cache
-from app.services.analytics_engine import compute_trend_score
 import asyncio
 
+from pytrends.request import TrendReq
 
-# --------------------------------------------------
-# 🔹 Map Startup Idea → Broad Trend Terms
-# --------------------------------------------------
+from app.core.cache import generate_cache_key, get_cache, set_cache
+from app.services.analytics_engine import compute_trend_score
+
+
+def _dedupe_terms(values):
+    deduped = []
+    seen = set()
+
+    for value in values:
+        text = str(value).strip()
+        if not text:
+            continue
+
+        key = text.lower()
+        if key in seen:
+            continue
+
+        seen.add(key)
+        deduped.append(text)
+
+    return deduped
+
+
+def _build_estimated_monthly_series(keywords, base_score):
+    labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    normalized_base = max(min(float(base_score or 38), 90), 20)
+    seed = sum(ord(char) for char in " ".join(keywords or [])) % 17
+
+    values = []
+    for index in range(len(labels)):
+        seasonal_wave = ((index % 6) - 2.5) * 1.6
+        half_year_wave = (1 if index >= 6 else -1) * ((seed % 5) * 0.35)
+        step_variation = ((seed + index * 3) % 7) - 3
+        value = normalized_base + seasonal_wave + half_year_wave + (step_variation * 0.45)
+        values.append(round(max(min(value, 95), 18), 2))
+
+    return labels, values
+
+
 def map_to_trend_terms(keywords):
-
     text = " ".join(keywords).lower()
 
-    # 🍎 Food / Grocery / Agriculture
-    if any(x in text for x in ["food", "organic", "vegetable", "rice", "millet", "farm"]):
+    if any(value in text for value in ["food", "organic", "vegetable", "rice", "millet", "farm"]):
         return ["organic food", "vegetables", "grocery"]
 
-    # 💻 Tech / AI / Software
-    if any(x in text for x in ["tech", "ai", "software", "app", "saas"]):
+    if any(value in text for value in ["tech", "ai", "software", "app", "saas"]):
         return ["technology", "software", "startup"]
 
-    # 🏥 Health / Fitness
-    if any(x in text for x in ["health", "fitness", "medical", "wellness"]):
+    if any(value in text for value in ["health", "fitness", "medical", "wellness"]):
         return ["health", "fitness", "wellness"]
 
-    # 🛒 Ecommerce / Retail
-    if any(x in text for x in ["shop", "store", "marketplace", "delivery", "commerce"]):
+    if any(value in text for value in ["shop", "store", "marketplace", "delivery", "commerce"]):
         return ["ecommerce", "online shopping", "retail"]
 
-    # 🎓 Education
-    if any(x in text for x in ["education", "learning", "course", "school", "edtech"]):
+    if any(value in text for value in ["education", "learning", "course", "school", "edtech"]):
         return ["education", "online learning"]
 
-    # Default fallback
     return ["business", "startup"]
 
 
-# --------------------------------------------------
-# 🔹 Industry Baseline Selector
-# --------------------------------------------------
 def get_baseline_keywords(mapped_keywords):
-
-    joined = " ".join(mapped_keywords)
+    joined = " ".join(mapped_keywords).lower()
 
     if "food" in joined or "grocery" in joined:
         return ["food"]
@@ -60,90 +83,103 @@ def get_baseline_keywords(mapped_keywords):
     return ["business"]
 
 
-# --------------------------------------------------
-# 🔹 Main Async Function
-# --------------------------------------------------
-async def get_trend_analysis(keywords, location="IN"):
+def _build_result(score, direction, keywords, source, labels=None, values=None):
+    monthly_labels = labels or []
+    monthly_values = values or []
 
-    # ------------------------------------------
-    # 🔹 No Keywords Case
-    # ------------------------------------------
+    if not monthly_labels or not monthly_values:
+        monthly_labels, monthly_values = _build_estimated_monthly_series(keywords, score)
+
+    return {
+        "trend_score": float(round(score, 2)),
+        "trend_direction": direction,
+        "monthly_labels": monthly_labels,
+        "monthly_interest": monthly_values,
+        "source": source,
+    }
+
+
+def _extract_monthly_series(data, target_columns, fallback_keywords, fallback_score):
+    target_series = data[target_columns].mean(axis=1)
+
+    try:
+        monthly_series = target_series.resample("ME").mean().tail(12)
+    except Exception:
+        monthly_series = target_series.resample("M").mean().tail(12)
+
+    labels = [date.strftime("%b") for date in monthly_series.index]
+    values = [round(float(value), 2) for value in monthly_series.tolist()]
+
+    if not labels or not values:
+        return _build_estimated_monthly_series(fallback_keywords, fallback_score)
+
+    return labels, values
+
+
+async def get_trend_analysis(keywords, location="IN"):
     if not keywords:
-        return {
-            "trend_score": 35,
-            "trend_direction": "Baseline demand"
-        }
+        return _build_result(35, "Baseline demand", keywords, "estimated")
 
     cache_key = generate_cache_key({
         "type": "trend_analysis",
         "keywords": keywords,
-        "location": location
+        "location": location,
     })
 
     cached = get_cache(cache_key)
     if cached:
-        print("⚡ Cached Trend Analysis")
+        print("Cached Trend Analysis")
         return cached
 
     try:
-        # ------------------------------------------
-        # 🔥 Blocking Google Trends Call
-        # ------------------------------------------
         def fetch_trend_data():
-
             pytrends = TrendReq(
                 hl="en-IN",
                 tz=330,
                 retries=2,
-                backoff_factor=0.2
+                backoff_factor=0.2,
             )
 
-            # ⭐ Convert idea → category terms
-            mapped = map_to_trend_terms(keywords)
+            mapped = map_to_trend_terms(keywords) or ["business"]
+            mapped = _dedupe_terms(mapped)
+            baseline = _dedupe_terms(get_baseline_keywords(mapped))
 
-            if not mapped:
-                mapped = ["business"]
+            mapped_keys = {item.lower() for item in mapped}
+            baseline = [term for term in baseline if term.lower() not in mapped_keys]
+            if not baseline:
+                baseline = ["business"] if "business" not in mapped_keys else ["market"]
 
-            baseline = get_baseline_keywords(mapped)
-
-            kw_list = mapped + baseline
-
-            # Google limit safeguard
-            kw_list = kw_list[:5]
+            kw_list = _dedupe_terms(mapped + baseline)[:5]
 
             pytrends.build_payload(
                 kw_list=kw_list,
-                timeframe="today 12-m",  # more stable
-                geo=location
+                timeframe="today 12-m",
+                geo=location,
             )
 
-            data = pytrends.interest_over_time()
+            return pytrends.interest_over_time(), mapped, baseline
 
-            return data, mapped, baseline
-
-        # Run blocking code in thread
         data, target_keywords, baseline_keywords = await asyncio.to_thread(fetch_trend_data)
 
-        # ------------------------------------------
-        # 🔹 No Data Case
-        # ------------------------------------------
         if data.empty:
-            result = {
-                "trend_score": 40,
-                "trend_direction": "Emerging / Low-volume demand"
-            }
+            result = _build_result(40, "Emerging / Low-volume demand", keywords, "estimated")
             set_cache(cache_key, result)
             return result
 
         if "isPartial" in data.columns:
             data = data.drop(columns=["isPartial"])
 
-        target_avg = data[target_keywords].mean().mean()
-        baseline_avg = data[baseline_keywords].mean().mean()
+        target_columns = [keyword for keyword in target_keywords if keyword in data.columns]
+        baseline_columns = [keyword for keyword in baseline_keywords if keyword in data.columns]
 
-        # ------------------------------------------
-        # 🔹 Score Calculation
-        # ------------------------------------------
+        if not target_columns or not baseline_columns:
+            fallback = _build_result(38, "Baseline demand (fallback)", keywords, "estimated")
+            set_cache(cache_key, fallback)
+            return fallback
+
+        target_avg = data[target_columns].mean().mean()
+        baseline_avg = data[baseline_columns].mean().mean()
+
         if baseline_avg == 0:
             raw_score = 40
         else:
@@ -151,9 +187,6 @@ async def get_trend_analysis(keywords, location="IN"):
 
         normalized_score = compute_trend_score(raw_score)
 
-        # ------------------------------------------
-        # 🔹 Demand Classification
-        # ------------------------------------------
         if normalized_score > 70:
             direction = "High demand"
         elif normalized_score > 50:
@@ -163,24 +196,30 @@ async def get_trend_analysis(keywords, location="IN"):
         else:
             direction = "Niche demand"
 
-        result = {
-            "trend_score": float(round(normalized_score, 2)),
-            "trend_direction": direction
-        }
+        monthly_labels, monthly_values = _extract_monthly_series(
+            data,
+            target_columns,
+            keywords,
+            normalized_score,
+        )
 
+        result = _build_result(
+            normalized_score,
+            direction,
+            keywords,
+            "google_trends",
+            monthly_labels,
+            monthly_values,
+        )
         set_cache(cache_key, result)
         return result
 
-    except Exception as e:
-        print("Google Trends error:", e)
+    except Exception as error:
+        if "429" in str(error):
+            print("Google Trends rate limited; using fallback trend data")
+        else:
+            print("Google Trends error:", error)
 
-        # ------------------------------------------
-        # 🔥 Smart Fallback
-        # ------------------------------------------
-        fallback = {
-            "trend_score": 38,
-            "trend_direction": "Baseline demand (fallback)"
-        }
-
+        fallback = _build_result(38, "Baseline demand (fallback)", keywords, "estimated")
         set_cache(cache_key, fallback)
         return fallback

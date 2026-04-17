@@ -1,307 +1,390 @@
-![Python](https://img.shields.io/badge/python-3.11-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-backend-green)
-![React](https://img.shields.io/badge/react-frontend-blue)
-![License](https://img.shields.io/badge/license-MIT-orange)
+# TrendSpark AI
 
+TrendSpark AI is a full-stack startup validation platform built with FastAPI and React. It lets a user log in, submit a startup idea, generate an AI-backed validation report, review saved reports in a dashboard, inspect analytics, and export a styled PDF report that mirrors the frontend layout.
 
-# 🚀 TrendSpark AI
+## What the Project Does
 
-AI-Powered Startup Validation & Market Intelligence Platform
+- Validates startup ideas with AI-generated executive summary, SWOT analysis, market analysis, and next steps
+- Calculates demand, market size, competition, and risk scores
+- Shows a dashboard with trend, competition, risk, TAM/SAM/SOM, SWOT, and competitor cards
+- Saves reports per user in SQLite
+- Supports report preview, analytics, delete, and PDF export
+- Uses JWT authentication for register/login and protected routes
 
-TrendSpark AI is a full-stack web platform designed to help entrepreneurs validate startup ideas using AI-driven insights.
-It analyzes business ideas and generates structured reports including market potential, competition analysis, risk level, and SWOT insights.
+## Current Stack
 
-The platform helps founders make **data-driven decisions before building a startup**.
+### Backend
 
----
+- Python
+- FastAPI
+- Uvicorn
+- SQLAlchemy
+- Pydantic
+- SQLite
+- ReportLab
+- Matplotlib
+- Pytrends
+- OSMnx
+- SerpAPI
+- Google GenAI SDK
 
-# 🎯 Key Features
+### Frontend
 
-• AI-powered startup idea validation
-• Market opportunity scoring
-• Competition analysis
-• Risk assessment visualization
-• SWOT analysis generation
-• Historical validation report storage
-• Authentication system (JWT-based login/signup)
-• Interactive dashboards with charts
-• API-based backend architecture
+- React 19
+- Vite
+- Axios
+- React Router
+- Chart.js
+- React Chart.js 2
+- ApexCharts
+- Tailwind CSS
 
----
-
-# 🏗 System Architecture
-
-Frontend (React) → API Layer (FastAPI) → Data Processing → Database Storage
-
-The system processes startup idea inputs, runs analysis logic, and generates structured insights that are visualized in the frontend dashboard.
-
----
-
-# ⚙️ Technology Stack
-
-## Backend
-
-Python-based API server built with FastAPI.
-
-Technologies used:
-
-• Python 3.x
-• FastAPI
-• Uvicorn
-• SQLAlchemy
-• Pydantic
-• JWT Authentication
-• SQLite Database
-• Python-dotenv
-
----
-
-## Frontend
-
-Modern JavaScript interface built with React.
-
-Technologies used:
-
-• React
-• Vite
-• Axios
-• Chart.js
-• React Chart.js 2
-• TailwindCSS / CSS modules
-• JavaScript ES6+
-
----
-
-# 📦 Backend Libraries & Packages
-
-Installed via pip.
+## Project Structure
 
 ```text
-fastapi
-uvicorn
-sqlalchemy
-pydantic
-python-dotenv
-passlib
-bcrypt
-python-jose
+TrendSpark AI/
+|-- Backend/
+|   |-- app/
+|   |   |-- auth/
+|   |   |-- core/
+|   |   |-- database/
+|   |   |-- models/
+|   |   |-- services/
+|   |   `-- main.py
+|   |-- reports/
+|   |-- static/
+|   |-- requirements.txt
+|   `-- main.py
+|-- trendspark-frontend/
+|   |-- src/
+|   |   |-- context/
+|   |   |-- layout/
+|   |   |-- pages/
+|   |   `-- services/
+|   |-- package.json
+|   `-- vite.config.js
+|-- .gitignore
+|-- README.md
+`-- to_run_server.txt
 ```
 
-Explanation:
+## Main Backend Routes
 
-FastAPI – Backend API framework
-Uvicorn – ASGI server to run FastAPI
-SQLAlchemy – Database ORM
-Pydantic – Data validation for request models
-python-dotenv – Environment variable management
-Passlib / bcrypt – Password hashing
-python-jose – JWT authentication
+- `POST /api/v1/auth/register`
+- `POST /api/v1/auth/login`
+- `GET /api/v1/health`
+- `POST /api/v1/validate`
+- `GET /api/v1/reports`
+- `GET /api/v1/report/{report_id}`
+- `GET /api/v1/report/{report_id}/pdf`
+- `DELETE /api/v1/report/{report_id}`
 
----
+## Environment Variables
 
-# 📦 Frontend Libraries & Packages
+Create `Backend/.env` and add the keys you want to use:
 
-Installed via npm.
-
-```text
-react
-react-dom
-axios
-chart.js
-react-chartjs-2
-vite
+```env
+GOOGLE_API_KEY=your_google_api_key
+OPENROUTER_API_KEY=your_openrouter_api_key
+SERPAPI_KEY=your_serpapi_key
 ```
 
-Explanation:
+Notes:
 
-React – Frontend UI framework
-Axios – API communication with backend
-Chart.js – Data visualization library
-React Chart.js 2 – React wrapper for charts
-Vite – Fast frontend build tool
+- `GOOGLE_API_KEY` is used for Gemini-based AI generation
+- `OPENROUTER_API_KEY` is used as a fallback AI provider
+- `SERPAPI_KEY` is used for competitor search
+- If some keys are missing, the app still runs with limited or fallback behavior
 
----
+## Local Setup
 
-# 📂 Project Folder Structure
+### 1. Clone the repository
 
-```
-TrendSpark-AI
-│
-├── Backend
-│   │
-│   ├── app
-│   │   ├── api
-│   │   ├── models
-│   │   ├── services
-│   │   ├── auth
-│   │   └── core
-│   │
-│   ├── static
-│   ├── data
-│   ├── cache
-│   ├── main.py
-│   ├── requirements.txt
-│   └── .env
-│
-├── trendspark-frontend
-│   │
-│   ├── src
-│   │   ├── components
-│   │   ├── pages
-│   │   ├── charts
-│   │   └── services
-│   │
-│   ├── package.json
-│   └── vite.config.js
-│
-└── README.md
+```powershell
+git clone https://github.com/harikrishnan-152005/Trendspark.git
+cd "TrendSpark AI"
 ```
 
----
+### 2. Backend setup
 
-# 🔧 Installation Guide
-
-## Clone the Repository
-
-```
-git clone https://github.com/yourusername/TrendSpark-AI.git
-cd TrendSpark-AI
-```
-
----
-
-# 🧠 Backend Setup
-
-Navigate to backend folder:
-
-```
+```powershell
 cd Backend
-```
-
-Create virtual environment:
-
-```
-python -m venv venv
-```
-
-Activate environment:
-
-Windows
-
-```
+py -3 -m venv venv
 venv\Scripts\activate
+py -3 -m pip install -r requirements.txt
+py -3 -m uvicorn app.main:app --reload --port 8000
 ```
 
-Install dependencies:
+Backend runs at:
 
-```
-pip install -r requirements.txt
-```
-
-Run the API server:
-
-```
-uvicorn main:app --reload
-```
-
-Backend server runs at:
-
-```
+```text
 http://127.0.0.1:8000
 ```
 
----
+### 3. Frontend setup
 
-# 💻 Frontend Setup
+Open a second terminal:
 
-Navigate to frontend:
-
-```
-cd trendspark-frontend
-```
-
-Install dependencies:
-
-```
+```powershell
+cd "E:\project phase 2\TrendSpark AI\trendspark-frontend"
 npm install
-```
-
-Run development server:
-
-```
 npm run dev
 ```
 
 Frontend runs at:
 
+```text
+http://127.0.0.1:5173
 ```
-http://localhost:5173
-```
 
----
+## Example Validate Request
 
-# 📊 Example Startup Validation Request
-
-POST /api/v1/validate
-
-Example input:
-
-```
+```json
 {
-"title": "AgroFresh Madurai",
-"description": "Farm-to-home organic vegetable delivery",
-"industry": "Ecommerce",
-"target_audience": "Health conscious families",
-"location": "Madurai"
+  "title": "MediPredict AI",
+  "description": "An AI-based preventive health monitoring platform that uses wearable data to detect early disease risk.",
+  "industry": "Health",
+  "target_audience": "Urban working professionals and preventive care users",
+  "location": "Chennai, India"
 }
 ```
 
----
+## Output Samples
 
-# 📊 Output Generated by the System
+### Sample API Response
 
-The platform generates:
+```json
+{
+  "report_id": "550e8400-e29b-41d4-a716-446655440000",
+  "idea_name": "MediPredict AI",
+  "overall_score": 7.4,
+  "executive_summary": "AI-assisted preventive healthcare concept with good demand indicators, moderate market pressure, and a clear pilot path.",
+  "trend_analysis": {
+    "trend_score": 62.0,
+    "trend_direction": "Moderate demand",
+    "monthly_labels": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "monthly_interest": [52, 55, 54, 58, 60, 62, 64, 63, 66, 68, 70, 72],
+    "source": "google_trends"
+  },
+  "market_size": {
+    "tam": 125000000.0,
+    "sam": 37500000.0,
+    "som": 3750000.0
+  },
+  "risk_analysis": {
+    "risk_score": 4.8,
+    "risk_level": "Medium Risk"
+  },
+  "competition_analysis": {
+    "competitor_count": 84,
+    "competition_level": "Medium"
+  },
+  "swot_analysis": {
+    "strengths": [
+      "Clear preventive health value proposition",
+      "Recurring engagement through continuous monitoring",
+      "Scalable AI-driven insights",
+      "Strong relevance for chronic care users",
+      "Potential for insurer or hospital partnerships"
+    ],
+    "weaknesses": [
+      "Needs trust and clinical validation",
+      "Hardware integrations add complexity",
+      "Data privacy expectations are high"
+    ],
+    "opportunities": [
+      "Growing wearable adoption",
+      "Preventive care focus is increasing",
+      "Remote monitoring budgets are expanding"
+    ],
+    "threats": [
+      "Large health platforms can copy features",
+      "Regulatory scrutiny may increase",
+      "Clinical buyers often have long sales cycles"
+    ]
+  },
+  "recommended_next_steps": [
+    "Pilot with one wearable integration first",
+    "Validate alert usefulness with 15 target users",
+    "Define clinical and non-clinical positioning boundaries"
+  ]
+}
+```
 
-• Market Score
-• Competition Index
-• Risk Level
-• SWOT Analysis
-• AI-generated Startup Report
+### Sample Dashboard Sections
 
----
+```text
+Validation Snapshot
+- Overall Score: 7.4 / 10
+- Trend Direction: Moderate demand
+- Competition Level: Medium
+- Risk Level: Medium Risk
+- Top Competitors: 5
 
-# 📸 Screenshots
+Market Trend
+- 12-month demand chart
+- Peak month, lowest month, average, and momentum cards
+- Monthly value tiles for Jan to Dec
 
-Screenshots will be added after final UI completion.
+Competition Snapshot
+- Ranked competitor visibility chart
+- Market pressure summary
+- Top competitor cards with snippet and link
 
-Example:
+Report Details
+- TAM / SAM / SOM cards
+- SWOT analysis cards
+- Recommended next steps
+- Exportable PDF report
+```
 
-Dashboard
-Validation Page
-Report Analysis Page
+## What a Report Includes
 
----
+- Overall validation score
+- Executive summary
+- SWOT analysis
+- Audience profile and keyword suggestions
+- 12-month market trend section
+- Competition snapshot and competitor list
+- Risk level and score breakdown
+- TAM, SAM, and SOM
+- Recommended next steps
+- Styled PDF export
 
-# 🚀 Future Improvements
+## Class Diagram
 
-• Real-time market data integration
-• Machine learning-based trend prediction
-• Investor recommendation engine
-• SaaS deployment model
-• AI pitch deck generator
+```mermaid
+classDiagram
+    class IdeaInput {
+        +str title
+        +str description
+        +str industry
+        +str target_audience
+        +str location
+    }
 
----
+    class SWOT {
+        +List strengths
+        +List weaknesses
+        +List opportunities
+        +List threats
+    }
 
-# 👨‍💻 Author
+    class MarketAnalysis {
+        +str audience_profile
+        +List potential_keywords
+    }
 
-Harikrishnan
+    class Competitor {
+        +str name
+        +str url
+        +str snippet
+    }
+
+    class TrendAnalysis {
+        +float trend_score
+        +str trend_direction
+        +List monthly_labels
+        +List monthly_interest
+        +str source
+    }
+
+    class MarketSize {
+        +float tam
+        +float sam
+        +float som
+    }
+
+    class RiskAnalysis {
+        +float risk_score
+        +str risk_level
+    }
+
+    class CompetitionAnalysis {
+        +int competitor_count
+        +str competition_level
+    }
+
+    class ScoreBreakdown {
+        +float ai_score
+        +float trend_score
+        +float market_strength
+        +float competition_score
+        +float risk_score
+    }
+
+    class ValidationReport {
+        +str report_id
+        +str idea_name
+        +float overall_score
+        +str executive_summary
+        +List recommended_next_steps
+        +str chart_url
+    }
+
+    IdeaInput --> ValidationReport : produces
+    ValidationReport *-- SWOT
+    ValidationReport *-- MarketAnalysis
+    ValidationReport *-- Competitor
+    ValidationReport *-- TrendAnalysis
+    ValidationReport *-- MarketSize
+    ValidationReport *-- RiskAnalysis
+    ValidationReport *-- CompetitionAnalysis
+    ValidationReport *-- ScoreBreakdown
+```
+
+## Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant UI as React Frontend
+    participant API as FastAPI Backend
+    participant Auth as JWT Auth
+    participant Cache as Cache Layer
+    participant AI as AI Service
+    participant Search as SerpAPI Search
+    participant Trend as Trend Service
+    participant OSM as OSMnx Service
+    participant Market as Market Size Service
+    participant DB as SQLite
+    participant PDF as PDF Generator
+
+    User->>UI: Login and submit startup idea
+    UI->>API: POST /api/v1/validate
+    API->>Auth: Validate bearer token
+    Auth-->>API: Current user
+    API->>Cache: Check cached validation
+
+    alt Cache hit
+        Cache-->>API: Cached report
+        API->>DB: Save report for current user if needed
+        API->>PDF: Generate or refresh PDF
+        API-->>UI: ValidationReport JSON
+    else Cache miss
+        Cache-->>API: No cached report
+        API->>AI: Generate executive summary, SWOT, keywords
+        API->>Search: Find competitors
+        par Parallel analysis
+            API->>Trend: Build trend analysis
+            API->>OSM: Get competition density
+            API->>Market: Compute TAM/SAM/SOM
+        end
+        API->>API: Score report and assemble ValidationReport
+        API->>PDF: Generate styled PDF report
+        API->>DB: Save report
+        API->>Cache: Store report
+        API-->>UI: ValidationReport JSON
+    end
+
+    UI->>API: GET /api/v1/report/{report_id}/pdf
+    API->>DB: Resolve report
+    API->>PDF: Regenerate latest PDF template
+    API-->>UI: PDF file
+```
+
+## Author
+
+Harikrishnan Ambethkar
 
 Machine Learning Enthusiast | Full Stack Developer
-
-Focused on building AI-powered platforms and intelligent decision support systems.
-
----
-
-# 📜 License
-
-MIT License

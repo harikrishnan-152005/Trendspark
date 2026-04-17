@@ -41,13 +41,14 @@ def register(data: RegisterRequest, db: Session = Depends(get_db)):
 
     user = UserDB(
         id=str(uuid.uuid4()),
-        username=data.username,
+        username=data.username.strip().lower(),  # ✅ FIX
         email=data.email,
         hashed_password=hash_password(data.password)
     )
 
     db.add(user)
     db.commit()
+    db.refresh(user)
 
     return {"message": "User created successfully"}
 
@@ -58,13 +59,17 @@ def register(data: RegisterRequest, db: Session = Depends(get_db)):
 @router.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(),
           db: Session = Depends(get_db)):
+    username = form_data.username.strip().lower()
 
     user = db.query(UserDB).filter(
-        UserDB.username == form_data.username
+        UserDB.username == username
     ).first()
 
-    if not user or not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    if not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Wrong password")
 
     token = create_access_token({"sub": user.username})
 
@@ -88,5 +93,4 @@ def get_current_user(token: str = Depends(oauth2_scheme),
 
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
-
     return user

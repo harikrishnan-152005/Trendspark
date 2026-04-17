@@ -77,11 +77,10 @@ def compute_final_score(ai_score: float,
                         risk_score: float) -> float:
 
     final = (
-        ai_score * 0.35 +
-        (trend_score / 10) * 0.20 +
-        (market_strength / 10) * 0.15 -
-        (competition_score / 10) * 0.15 -
-        risk_score * 0.15
+        ai_score * 0.40 +
+        (trend_score / 10) * 0.25 +
+        (market_strength / 10) * 0.20 -
+        risk_score * 0.08
     )
 
     return round(max(min(final, 10), 1), 2)

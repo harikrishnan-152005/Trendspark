@@ -13,3 +13,6 @@ httpx
 urllib3==1.26.16
 bcrypt==4.0.1
 passlib[bcrypt]
+python-jose
+python-multipart
+reportlab

@@ -1,33 +1,37 @@
 import { useState } from "react";
-import axios from "axios";
+import { clearSession } from "../services/api";
 
 export default function Login() {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleLogin = async () => {
     try {
-      const params = new URLSearchParams();
-      params.append("username", username);
-      params.append("password", password);
+      setError("");
 
-      const res = await axios.post(
-        "http://127.0.0.1:8000/api/v1/auth/login",
-        params,
-        {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-        }
-      );
+      const formData = new FormData();
+      formData.append("username", username);
+      formData.append("password", password);
 
-      localStorage.setItem("token", res.data.access_token);
-      window.location.reload();
+      const res = await fetch("http://127.0.0.1:8000/api/v1/auth/login", {
+        method: "POST",
+        body: formData,
+      });
 
+      const data = await res.json();
+
+      if (!res.ok || !data.access_token) {
+        throw new Error(data.detail || "Login failed");
+      }
+
+      clearSession();
+      localStorage.setItem("token", data.access_token);
+      window.location.href = "/";
     } catch (err) {
-      console.log("LOGIN ERROR:", err.response?.data);
-      alert("Login failed");
+      console.error("Login failed", err);
+      setError(err.message || "Login failed");
     }
   };
 
@@ -36,6 +40,12 @@ export default function Login() {
 
       <div className="bg-slate-900 p-10 rounded-xl w-96">
         <h2 className="text-2xl mb-6">Login</h2>
+
+        {error && (
+          <p className="mb-4 rounded bg-red-950 px-3 py-2 text-sm text-red-300">
+            {error}
+          </p>
+        )}
 
         <input
           className="w-full p-3 mb-4 rounded bg-slate-800"

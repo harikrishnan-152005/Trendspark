@@ -75,6 +75,9 @@ class MarketAnalysis(BaseModel):
 class TrendAnalysis(BaseModel):
     trend_score: float
     trend_direction: str
+    monthly_labels: List[str] = Field(default_factory=list)
+    monthly_interest: List[float] = Field(default_factory=list)
+    source: str = Field(default="estimated")
 
 class MarketSize(BaseModel):
     tam: float

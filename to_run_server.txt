@@ -1,7 +1,9 @@
+Backend
 cd Backend
+py -3 -m pip install -r requirements.txt
+py -3 -m uvicorn app.main:app --reload --port 8000
 
-python -m uvicorn main:app --reload --port 8000
-
-venv\Scripts\activate
-
-uvicorn app.main:app --reload
+Frontend
+cd trendspark-frontend
+npm install
+npm run dev

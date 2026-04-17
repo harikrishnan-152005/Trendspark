@@ -3,8 +3,12 @@
 import os
 import time
 import requests
-from google import genai
 from dotenv import load_dotenv
+
+try:
+    from google import genai
+except ImportError:
+    genai = None
 
 load_dotenv()
 
@@ -14,11 +18,30 @@ load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-if not GOOGLE_API_KEY:
-    raise ValueError("GOOGLE_API_KEY missing in .env")
+_client = None
 
-# Create Gemini client (NEW SDK)
-client = genai.Client(api_key=GOOGLE_API_KEY)
+
+def _get_gemini_client():
+    global _client
+
+    if _client is not None:
+        return _client
+
+    if not GOOGLE_API_KEY:
+        print("GOOGLE_API_KEY missing; Gemini disabled")
+        return None
+
+    if genai is None:
+        print("google-genai is not installed; Gemini disabled")
+        return None
+
+    try:
+        _client = genai.Client(api_key=GOOGLE_API_KEY)
+    except Exception as e:
+        print("Failed to initialize Gemini client:", e)
+        return None
+
+    return _client
 
 _current_model_name = "gemini-2.5-flash"
 
@@ -27,6 +50,9 @@ _current_model_name = "gemini-2.5-flash"
 # GEMINI CALL WITH RETRY (NEW SDK)
 # -------------------------------------------------
 def _call_gemini(prompt: str):
+    client = _get_gemini_client()
+    if client is None:
+        return None
 
     retries = 3
     delay = 1
